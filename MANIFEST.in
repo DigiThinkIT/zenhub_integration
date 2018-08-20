@@ -1,0 +1,18 @@
+include MANIFEST.in
+include requirements.txt
+include *.json
+include *.md
+include *.py
+include *.txt
+recursive-include zenhub_integration *.css
+recursive-include zenhub_integration *.csv
+recursive-include zenhub_integration *.html
+recursive-include zenhub_integration *.ico
+recursive-include zenhub_integration *.js
+recursive-include zenhub_integration *.json
+recursive-include zenhub_integration *.md
+recursive-include zenhub_integration *.png
+recursive-include zenhub_integration *.py
+recursive-include zenhub_integration *.svg
+recursive-include zenhub_integration *.txt
+recursive-exclude zenhub_integration *.pyc
