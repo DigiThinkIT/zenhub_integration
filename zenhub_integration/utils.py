@@ -6,25 +6,18 @@ import requests
 from github import Github
 
 
-def get_zenhub_issue_data(repo_id, issue, token):
+def get_zenhub(token, repo_id, endpoint, issue):
     PARAMS = {"access_token": token}
-    ZENHUB_URL = "https://api.zenhub.io/p1/repositories/{}/issues/{}".format(
-        repo_id, issue)
+    ZENHUB_URL = "https://api.zenhub.io/p1/repositories/{}/{}/{}".format(
+        repo_id, endpoint, issue)
     return requests.get(ZENHUB_URL, params=PARAMS).json()
-
-
-def get_zenhub_epic_issues(repo_id, epic, token):
-    PARAMS = {"access_token": token}
-    ZENHUB_URL = "https://api.zenhub.io/p1/repositories/{}/epics/{}".format(
-        repo_id, epic)
-    return requests.get(ZENHUB_URL, params=PARAMS).json().get("issues")
 
 
 def get_zenhub_data(tasks, zenhub_token, zenhub_repo_id):
     for task in tasks:
         task = frappe.get_doc("Task", task.name)
-        zenhub_data = get_zenhub_issue_data(zenhub_repo_id,
-                                            task.github_issue_no, zenhub_token)
+        zenhub_data = get_zenhub(zenhub_token, zenhub_repo_id, "issues",
+                                 task.github_issue_no)
 
         task.estimate_story_points = zenhub_data.get(
             "estimate", {}).get("value")
@@ -32,15 +25,13 @@ def get_zenhub_data(tasks, zenhub_token, zenhub_repo_id):
         if zenhub_data.get("is_epic"):
             task.is_group = 1
 
-            issues = get_zenhub_epic_issues(
-                zenhub_repo_id, task.github_issue_no, zenhub_token)
+            issues = get_zenhub(zenhub_token, zenhub_repo_id,
+                                "epics", task.github_issue_no).get("issues")
 
             for issue in issues:
                 if frappe.db.exists("Task", {"github_issue_no": issue.get("issue_number")}):
-                    subtask = frappe.get_doc(
-                        "Task", {"github_issue_no": issue.get("issue_number")})
-                    subtask.db_set("parent_task", task.name,
-                                   update_modified=False)
+                    frappe.db.set_value("Task", {"github_issue_no": issue.get(
+                        "issue_number")}, "parent_task", task.name, update_modified=False)
 
         task.save()
         frappe.db.commit()
@@ -71,6 +62,7 @@ def process_issue(issue):
 
 
 def get_priority(issue):
+    # Ugly code to extract Priorities from Labels
     for label in issue.labels:
         if "Priority" in label.name:
             return label.name[10:]
@@ -122,7 +114,6 @@ def create_or_update_task(issue, project, priority):
     task.github_issue_no = issue.number
     task.project = project
     task.status = issue.state.title()
-    print issue.state.title()
     if priority:
         task.priority = priority
     task.save()

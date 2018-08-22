@@ -90,23 +90,11 @@ app_license = "MIT"
 # Scheduled Tasks
 # ---------------
 
-# scheduler_events = {
-# 	"all": [
-# 		"zenhub_integration.tasks.all"
-# 	],
-# 	"daily": [
-# 		"zenhub_integration.tasks.daily"
-# 	],
-# 	"hourly": [
-# 		"zenhub_integration.tasks.hourly"
-# 	],
-# 	"weekly": [
-# 		"zenhub_integration.tasks.weekly"
-# 	]
-# 	"monthly": [
-# 		"zenhub_integration.tasks.monthly"
-# 	]
-# }
+scheduler_events = {
+	"daily": [
+		"zenhub_integration.utils.get_issues"
+    ]
+}
 
 # Testing
 # -------
