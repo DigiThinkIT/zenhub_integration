@@ -11,3 +11,4 @@ from frappe.utils.background_jobs import enqueue
 class ZenHubSettings(Document):
 	def get_issues(self):
 		enqueue(get_issues)
+		frappe.msgprint("Fetching issues in Background")
