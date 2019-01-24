@@ -79,11 +79,11 @@ app_license = "MIT"
 # ---------------
 # Hook on document methods and events
 
-doc_events = {
-	"Task": {
-		"on_update": "zenhub_integration.hook_events.create_or_update_issue"
-	}
-}
+# doc_events = {
+# 	"Task": {
+# 		"on_update": "zenhub_integration.hook_events.create_or_update_issue"
+# 	}
+# }
 
 # Scheduled Tasks
 # ---------------
