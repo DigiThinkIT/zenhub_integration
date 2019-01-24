@@ -79,22 +79,20 @@ app_license = "MIT"
 # ---------------
 # Hook on document methods and events
 
-# doc_events = {
-# 	"*": {
-# 		"on_update": "method",
-# 		"on_cancel": "method",
-# 		"on_trash": "method"
-#	}
-# }
+doc_events = {
+	"Task": {
+		"on_update": "zenhub_integration.hook_events.create_or_update_issue"
+	}
+}
 
 # Scheduled Tasks
 # ---------------
 
-scheduler_events = {
-	"daily": [
-		"zenhub_integration.utils.get_issues"
-    ]
-}
+# scheduler_events = {
+# 	"daily": [
+# 		"zenhub_integration.utils.get_issues"
+#     ]
+# }
 
 # Testing
 # -------
