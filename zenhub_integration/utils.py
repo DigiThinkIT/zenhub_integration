@@ -5,6 +5,7 @@ import frappe
 import misaka as m
 import requests
 from github import Github
+from frappe.desk.tags import add_tag
 
 
 def get_zenhub(token, repo_id, endpoint, issue):
@@ -43,19 +44,24 @@ def get_zenhub_data(tasks, zenhub_token, zenhub_repo_id):
         frappe.db.commit()
 
 
-def get_issues():
+def get_issues(closed_issues=False):
     settings = frappe.get_single("ZenHub Settings")
     for repo in settings.repositories:
         tasks = get_github_data(settings.get_password(
-            "github_token"), repo.github_repo_name)
+            "github_token"), repo.github_repo_name, closed_issues)
         get_zenhub_data(tasks=tasks, zenhub_token=settings.get_password(
             "zenhub_token"), zenhub_repo_id=repo.zenhub_repo_id)
 
 
-def get_github_data(access_token, repo_name):
+def get_github_data(access_token, repo_name, closed_issues):
     tasks = []
+    state = "open"
+
+    if closed_issues:
+        state = "closed"
+
     g = Github(access_token)
-    issues = g.get_repo(repo_name).get_issues()
+    issues = g.get_repo(repo_name).get_issues(state=state)
     for issue in issues:
         tasks.append(process_issue(issue))
     return tasks
@@ -88,7 +94,7 @@ def get_or_create_project(issue):
             #     frappe.db.commit()
 
     if customer_name:
-        project_name = "Project : {}".format(customer_name)
+        project_name = "{}".format(customer_name)
 
         if not frappe.db.exists("Project", project_name):
             project = frappe.new_doc("Project")
@@ -126,6 +132,9 @@ def create_or_update_task(issue, project, priority):
             # Cause this is the only way Frappe will add a comment with the correct username
             frappe.session.user = get_user_email(comment.user.login)
             add_or_update_comment(task.name, comment)
+
+    for label in issue.labels:
+        add_tag(tag=label.name, dt="Task", dn=task.name)
     frappe.db.commit()
     return task
 
